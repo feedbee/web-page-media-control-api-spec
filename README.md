@@ -1,32 +1,43 @@
-# Web Page Media Control API specification
+Web Page Media Control API specification
+==========================================
 
-*Version 0.2.*
+*Version 0.3.*
 
-This is API specification for web pages to be controlled by system-wide media controls. Media controls are special buttons on the keyboard, hardware buttons on headset, remote control or any other hardware or software way to give media related commands (Media Actions) to a media source (player). The *Web Page Media Control API* described here connects a *Browser-Side Control System* to web applications. As browsers currently have no common API to send media actions to web pages, a special browser extension must be used.
+The *Web Page Media Control API* is created to provide generic way of web page embedded media content control (audio or video). *Media Content Source* is a unit that is controlled independently. Currently it's a web page. *Media Control Source* can be one of the folowing: media buttons on the keyboard, hardware buttons on headset, remote control tool or any other hardware or software way to issue media related commands (Media Actions).
 
-*Media Actions* control media playback: start, stop, pause, next or previous track selection. *Media Events* are document-level events triggered in response to Media Actions. A *Browser-Side Control System* is a browser internal subsystem or exctension that brings Media Actions to web page.
+*Media Action* is an intent to control a media source (to start/stop/pause the playback, or to choose next or previous track, or to change sound volume). The *Web Page Media Control API* described here may be used to deliver Media Actions from *Browser-Side Component* to a web application. *Browser-Side Component* is a browser itself or an extension that directly binded to Media Control Source and provides it's commands to Media Content Source.
+
+*Media Events* are web page document-level events triggered by Browser-Side Component in response to Media Actions received from Media Control Source. Media Event is a carrier, it holds information about Media Action (just a message type currently).
+
+```
+                                               |<-- Web Page Media Control API -->|
+___________                       _____________                                    ___________
+| Media   |                       | Browser-  |                                    | Web     |
+| Control |  --(Media Action)-->  | Side      |        --(Media Events)-->         | page    |
+| Source  |                       | Component |                                    | scripts |
+-----------                       -------------                                    -----------
+```
+
+*Example*. Media Control Source — keyboard hardware media keys. Browser-Side Component — [Keysocket](https://github.com/borismus/keysocket) — Google Chrome extension that provides support for keyboard media keys in browser. Keysocket uses Web Page Media Control API to send Media Action to web pages by Media Events. Web pages use Web Page Media Control API to receive Media Events and perform Media Action.
 
 Media Action listeners
 ----------------------
 
-The Browser-Side Control System will trigger `MediaControlApiInit` document-level event on initialiation finished. It will also trigger following document-level events (Media Events) on media actions:
+The Browser-Side Component will trigger the following document-level events (Media Events) on Media Actions:
 
 - `MediaPlayPause`
 - `MediaStop`
 - `MediaPrev`
 - `MediaNext`
 
-To receive Media Events, the web page must be registered.
+To receive Media Events, the web page must register itself.
 
-Register page to receive Media Events
--------------------------------------
+Web page registration to receive Media Events
+---------------------------------------------
 
-If some web page wants to be controlled by system-wide media controls, it should be registered for Media Events using one of this ways:
+Web pages that have Media Content Sources embedded must be registered to get under the control of one or more Browser-Side Components that use API described here. The web pages must register themselfs adding `<meta name="media-controlled">` tag. If the tag is present into the page in time of Browser-Side Components initialization, the page gets registered automatically. Usualy Browser-Side Components initialization occurs after all page scripts are loaded.
 
-1. Add `<meta name="media-controlled">` on the page (this tag must be present on the page before `MediaControlApiInit` event is triggered). 
-2. Trigger `MediaControlled` event on document after `MediaControlApiInit` was triggered, optionally trigger `MediaUncontrolled` event on document to disable control over current page.
-
-If page was registered using `<meta name="media-controlled">`, `MediaUncontrolled` event can be used to unregister it as well.
+Web page can be registered/unregistered dynamically. Browser-Side Components listen to `MediaControlStateChanged` document-level event on every opened page. After Browser-Side Component receives `MediaControlStateChanged` event, they look for `<meta name="media-controlled">` tag on the page. If the tag have been found, page gets registered. Otherwise, page gets unregistered.
 
 Userland (web page) code example
 --------------------------------
@@ -50,15 +61,15 @@ document.addEventListener("MediaNext", function () {
 });
 
 // Register the page to receive user Media Events
-document.dispatchEvent(new Event("MediaControlled"));
+addMetaTagToDocumentHead(); // <meta name="media-controlled"> added to html>head inside
+document.dispatchEvent(new Event("MediaControlStateChanged"));
 ```
 
-Browser-Side Control System
----------------------------
+Browser-Side Component
+----------------------
 
-Browser (or browser extension) must:
+Browser-Side Component — browser itself or it's extension — must:
 
-1. Register a listener for `MediaControlled` and `MediaUncontrolled` events on document tag in every tab on on every pageload. The first event must register page to receive Media Events, the second event must cancel the registration.
-2. Trigger `MediaControlApiInit` document-level event when system initialization finished.
-3. Search for `<meta name="media-controlled">` tag in every tab on every page load and register page to receive Media Events if the tag was found.
-3. Trigger apprioritate Media Event when a Media Action received. Which pages will receive Media Event is a busines of Browser-Side Control System. It can be single page selected using [Media Focus Stack](http://smus.com/remote-controls-web-media/) approach, or all opened pages, or something else.
+1. Register a listener for `MediaControlStateChanged` event on document tag into every opened tab on every pageload. When the event have been caught, Browser-Side Component must look for `<meta name="media-controlled">` into the page. If the tag have been found and the page is not already registered, it must become registered. If the tag is not found and the page iscurrently registered, this registration must be canceled.
+2. Search for `<meta name="media-controlled">` tag in every tab after every page load.
+3. Trigger apprioritate Media Event when a Media Action is received. Browser-Side Component use it's own rules to make a decision which pages will receive Media Event. Single page can be selected using [Media Focus Stack](http://smus.com/remote-controls-web-media/) approach, or all opened pages can receive event, or another logic can be applied.
