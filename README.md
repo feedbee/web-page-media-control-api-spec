@@ -1,7 +1,7 @@
 Web Page Media Control API specification
 ==========================================
 
-*Version 0.3.*
+*Version 0.4.*
 
 The *Web Page Media Control API* is created to provide generic way of web page embedded media content control (audio or video). *Media Content Source* is a unit that is controlled independently. Currently it's a web page. *Media Control Source* can be one of the folowing: media buttons on the keyboard, hardware buttons on headset, remote control tool or any other hardware or software way to issue media related commands (Media Actions).
 
@@ -35,9 +35,9 @@ To receive Media Events, the web page must register itself.
 Web page registration to receive Media Events
 ---------------------------------------------
 
-Web pages that have Media Content Sources embedded must be registered to get under the control of one or more Browser-Side Components that use API described here. The web pages must register themselfs adding `<meta name="media-controlled">` tag. If the tag is present into the page in time of Browser-Side Components initialization, the page gets registered automatically. Usualy Browser-Side Components initialization occurs after all page scripts are loaded.
+Web pages that have Media Content Sources embedded must be registered to get under the control of one or more Browser-Side Components that use API described here. The web pages must register themselfs adding `<meta name="media-controllable">`. This tag must have no `content` property, or have `content` property with value not equal to `no`. If the tag is present into the page in time of Browser-Side Components initialization, the page gets registered automatically. Usualy Browser-Side Components initialization occurs after all page scripts are loaded.
 
-Web page can be registered/unregistered dynamically. Browser-Side Components listen to `MediaControlStateChanged` document-level event on every opened page. After Browser-Side Component receives `MediaControlStateChanged` event, they look for `<meta name="media-controlled">` tag on the page. If the tag have been found, page gets registered. Otherwise, page gets unregistered.
+Web page can be registered/unregistered dynamically. Browser-Side Components listen to `MediaControlStateChanged` document-level event on every opened page. After Browser-Side Component receives `MediaControlStateChanged` event, they look for `<meta name="media-controllable">` tag on the page. If the tag have been found and it's `content` attribute is not equal to `no`, the page gets registered. To unregister the page, `<meta name="media-controllable">` meta tag can be removed, or it's `content` attribure can be set to `no`: `<meta name="media-controllable" content="no">`.
 
 Userland (web page) code example
 --------------------------------
@@ -61,7 +61,7 @@ document.addEventListener("MediaNext", function () {
 });
 
 // Register the page to receive user Media Events
-addMetaTagToDocumentHead(); // <meta name="media-controlled"> added to html>head inside
+addMetaTagToDocumentHead(); // <meta name="media-controllable"> added to html>head inside
 document.dispatchEvent(new Event("MediaControlStateChanged"));
 ```
 
@@ -70,6 +70,6 @@ Browser-Side Component
 
 Browser-Side Component — browser itself or it's extension — must:
 
-1. Register a listener for `MediaControlStateChanged` event on document tag into every opened tab on every pageload. When the event have been caught, Browser-Side Component must look for `<meta name="media-controlled">` into the page. If the tag have been found and the page is not already registered, it must become registered. If the tag is not found and the page iscurrently registered, this registration must be canceled.
-2. Search for `<meta name="media-controlled">` tag in every tab after every page load.
+1. Register a listener for `MediaControlStateChanged` event on document tag into every opened tab on every pageload. When the event have been caught, Browser-Side Component must look for `<meta name="media-controllable">` into the page. The tag's `content` attribute must not be equal to `no`. If the tag have been found and the page is not already registered, it must become registered. If the tag is not found (or it has `content="no"` attribute) and the page is currently registered, this registration must be canceled.
+2. Search for `<meta name="media-controllable">` tag (without `content="no"` attribute) in every tab after every page load.
 3. Trigger apprioritate Media Event when a Media Action is received. Browser-Side Component use it's own rules to make a decision which pages will receive Media Event. Single page can be selected using [Media Focus Stack](http://smus.com/remote-controls-web-media/) approach, or all opened pages can receive event, or another logic can be applied.
