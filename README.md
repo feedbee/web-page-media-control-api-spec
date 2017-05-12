@@ -3,11 +3,11 @@ Web Page Media Control API Specification
 
 **Version 1.0.**
 
-The **Web Page Media Control API** was created to provide generic way of to control web page embedded media content (audio or video). **Media Content Source** is a web page with any king of media source (sound or video). **Media Control Source** is one of the folowing: media buttons on the keyboard, hardware buttons on headset, remote control tool or any other hardware or software way to issue media related commands -- Media Actions.
+The **Web Page Media Control API** was created to provide generic way to control web page embedded media content (audio or video). **Media Content Source** is a web page with any king of media source (sound or video). **Media Control Source** is one of the folowing: media buttons on the keyboard, hardware buttons on headset, remote control tool or any other hardware or software way to issue media related commands -- Media Actions.
 
-**Media Action** is an intent to control a media source (to start/stop/pause the playback, or to choose next or previous track, or to change sound volume). **Web Page Media Control API** described here can be used to deliver Media Actions from **Browser-Side Component** to a web application. **Browser-Side Component** is a browser itself or an extension that directly binded to Media Control Source. It provides Media Actions to Media Content Source.
+**Media Action** is an intent to control a media source (to start/stop/pause the playback, or to choose next or previous track, or to change sound volume). Web Page Media Control API described here is used to deliver Media Actions from **Browser-Side Component** to a web application. **Browser-Side Component** is a browser itself or an extension that directly binded to Media Control Source. It provides Media Actions to Media Content Source.
 
-**Media Events** are web page document-level events triggered by Browser-Side Component in response to Media Actions received from Media Control Source. Media Event is a carrier, it holds information about Media Action (just a message type currently).
+**Media Events** are web page document-level events triggered by Browser-Side Component in response to Media Actions received from Media Control Source. Media Event is a carrier, it holds information about Media Action.
 
 ```
                                                |<-- Web Page Media Control API -->|
@@ -23,7 +23,7 @@ ___________                       _____________                                 
 Media Action Listeners
 ----------------------
 
-The Browser-Side Component triggers the following document-level events (Media Events) on Media Actions:
+The Browser-Side Component triggers following document-level events (Media Events) on Media Actions:
 
 - `MediaPlayPause`
 - `MediaStop`
@@ -37,13 +37,13 @@ Web Page Registration to Receive Media Events
 
 Web pages with embedded Media Content Sources must be registered to be controlled by one or more Browser-Side Components. Web page can be registered/unregistered in two ways: static and dynamic.
 
-Web page can be registered/unregistered *statically*. Web page must register itselfs by adding `<meta name="media-controllable">` tag. This tag must have no `content` property, or have `content` property value *not* equal to `no`. If the tag is present at the time of Browser-Side Components initialization, the page gets registered automatically. Usualy Browser-Side Components initialization occurs after all page scripts are loaded.
+Web page can be registered/unregistered *statically*. Web page must register itselfs by adding `<meta name="media-controllable">` tag. This tag must have no `content` property, or have `content` property value *not* equal to `no`. If the tag is present at the time of Browser-Side Components initialization, page gets registered automatically. Usualy Browser-Side Components initialization occurs after all page scripts are loaded.
 
 Alternatively, web page can be registered/unregistered *dynamically*. Browser-Side Components listen to `MediaControlStateChanged` document-level event on every opened page. When `MediaControlStateChanged` event is thrown, Browser-Side Component determines what it should do: register or unregister the web-page.
 
-The event agrument can be instance of [`CustomEvent`][custom-event] or [`Event`][event]. For [`CustomEvent`][custom-event] details property must tell whether to register or unregister the page. If `event.details == "enabled"` the page will be registered. If `event.details == "disabled"` the page will be unregistered. Other values are ignored.
+The agrument of event can be instance of [`CustomEvent`][custom-event] or [`Event`][event]. For [`CustomEvent`][custom-event] details property must tell whether to register or unregister the page. If `event.details == "enabled"` the page will be registered. If `event.details == "disabled"` the page will be unregistered. Other values are ignored.
 
-For [`Event`][event] Browser-Side Component looks for `<meta name="media-controllable">` tag on the page. If the tag has been found and it's `content` attribute is not equal to `no`, the page will be registered. To unregister the page, `<meta name="media-controllable">` meta tag must be removed, or it's `content` attribure must be set to `no`: `<meta name="media-controllable" content="no">`.
+For [`Event`][event] Browser-Side Component looks for `<meta name="media-controllable">` tag on the page. If the tag is found and it's `content` attribute is not equal to `no`, the page will be registered. To unregister the page, `<meta name="media-controllable">` meta tag must be removed, or it's `content` attribure must be set to `no`: `<meta name="media-controllable" content="no">`.
 
 Userland (web page) code example
 --------------------------------
@@ -106,7 +106,7 @@ Browser-Side Component -- browser itself or it's extension -- must:
 
 1. Register a listener for `MediaControlStateChanged` event on `document` tag into every opened tab on every page load. When the event have been caught, Browser-Side Component determines what it should do: register or unregister the web-page. It acts depending on event argument type.
 
-    1. If the type is [`CustomEvent`][custom-event], Browser-Side Component  [`CustomEvent`][custom-event], Browser-Side Component must check it's details property. If `event.details == "enabled"`, the page must be registered. If `event.details == "disabled"`, the page must be unregistered. Other values are ignored.
+    1. If the type is [`CustomEvent`][custom-event], Browser-Side Component must check it's details property. If `event.details == "enabled"`, the page must be registered. If `event.details == "disabled"`, the page must be unregistered. Other values are ignored.
     
     2. If the event agrument is *not* an instance of [`CustomEvent`][custom-event] (so it's an instance of [`Event`][event]), Browser-Side Component must search `<meta name="media-controllable">` tags into the page. If one or more tags with `content` attribute is not equal to `no` has been found, the page must be registered. In other case (no tags have been found, or `content` of at least one tag equal to `no`) the page must be unregistered.
 
@@ -155,11 +155,11 @@ registerOrUnregisterPage(isPageMediaControllableByTag());
 Changelog
 ---------
 
-1.0. May 12, 2017. `CustomEvent` rules added. More examples.
-0.4. May 6, 2015. Meta-tag changed.
-0.3. May 5, 2015. `MediaControlStateChanged` event is introduced, some terms explained, some new terms introduced.
-0.2. May 1, 2015. Add `MediaControlApiInit` event, add some description.
-0.1. May 1, 2015. Initial version.
+* 1.0. May 12, 2017. `CustomEvent` rules added. More examples.
+* 0.4. May 6, 2015. Meta-tag changed.
+* 0.3. May 5, 2015. `MediaControlStateChanged` event is introduced, some terms explained, some new terms introduced.
+* 0.2. May 1, 2015. Add `MediaControlApiInit` event, add some description.
+* 0.1. May 1, 2015. Initial version.
 
 [custom-event]: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
 [event]: https://developer.mozilla.org/en-US/docs/Web/API/Event
